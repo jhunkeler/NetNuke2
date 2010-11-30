@@ -34,22 +34,13 @@ extern pthread_mutex_t lock_write;
 
 void* wipe(void* device)
 {
-    srand(nngetseed());
-    char buf = '\0';
     nndevice_t* d = (nndevice_t*)device;
-    FILE* fp;
-    FILE* fptmp = fopen(d->path, "w+t");
-    if(fptmp == NULL)
-    {
-        COM(self, "Unable to open %s: %s\n", d->path, strerror(errno));
-        return (int*)1;
-    }
-    fseek(fptmp, d->sz, SEEK_CUR);
-    fwrite(&buf, sizeof(char), 1, fptmp);
-    fclose(fptmp);
+    int output_progress = 0;
+    unsigned int blocks = d->blksz * d->blks;
+    unsigned long long blocks_written = 0;
+    long double percent = 0.0L;
 
-    fp = NULL;
-    fp = fopen(d->path, "w+t");
+    FILE* fp = fopen(d->path, "w+t");
     if(fp == NULL)
     {
         COM(self, "Unable to open %s: %s\n", d->path, strerror(errno));
@@ -58,19 +49,16 @@ void* wipe(void* device)
     COM(self, "path: %s, block size %d, blocks %lu, total bytes %lu\n",
            d->path, d->blksz, d->blks, d->sz);
 
-    int output_progress = 0;
-    unsigned int blocks = d->blksz * d->blks;
-    unsigned long long blocks_written = 0;
+    srand(nngetseed());
     while(blocks_written < blocks)
     {
         pthread_mutex_lock(&lock_global);
         blocks_written += nnwrite(fp, d->blksz);
         pthread_mutex_unlock(&lock_global);
 
-
         if(output_progress >= 102400)
         {
-            long double percent = (blocks_written / (long double)d->sz) * 100;
+            percent = (blocks_written / (long double)d->sz) * 100;
             printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, blocks_written, d->sz, percent);
             output_progress = 0;
         }
