@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 {
     if((nnlogcleanup()) != 0)
     {
-        fprintf(strerr, "Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
+        fprintf(stderr, "Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
     }
     COM(self, "Program start\n");
 
