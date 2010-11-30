@@ -41,11 +41,7 @@ int verbose_flag = 0;
 int bus_mask = 0;
 int device_timeout = 0;
 char** bus_flags = NULL;
-/*
-struct tm *logtm;
-time_t logtime;
-char timestr[64];
-*/
+
 static struct option long_options[] =
 {
     {"help",    no_argument,   0,   0},
@@ -128,7 +124,7 @@ int main(int argc, char* argv[])
 {
     if((nnlogcleanup()) != 0)
     {
-        printf("Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
+        fprintf(strerr, "Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
     }
     COM(self, "Program start\n");
 
@@ -203,15 +199,6 @@ int main(int argc, char* argv[])
     scanbus(device, bus_mask);
     nnrandinit();
 
-/*
-    nndevice_t device[] = {
-        {"./test", 512,20468,1048000},
-        {"./test1",512,20468,1048000},
-        {"./test2",512,20468,1048000},
-        {"./test3",512,20468,1048000},
-        {0,0,0,0}
-    };
-*/
     COM(self, "Initializing mutex\n");
     pthread_mutex_init(&lock_global, NULL);
 
