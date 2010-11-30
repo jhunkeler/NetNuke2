@@ -36,7 +36,7 @@ void* wipe(void* device)
 {
     nndevice_t* d = (nndevice_t*)device;
     int output_progress = 0;
-    unsigned int blocks = d->blksz * d->blks;
+    unsigned long int blocks = d->blksz * d->blks;
     unsigned long long blocks_written = 0;
     long double percent = 0.0L;
 
@@ -46,7 +46,7 @@ void* wipe(void* device)
         COM(self, "Unable to open %s: %s\n", d->path, strerror(errno));
         return (int*)1;
     }
-    COM(self, "path: %s, block size %d, blocks %lu, total bytes %lu\n",
+    COM(self, "path: %s, block size %d, blocks %llu, total bytes %llu\n",
            d->path, d->blksz, d->blks, d->sz);
 
     srand(nngetseed());
@@ -58,11 +58,10 @@ void* wipe(void* device)
 
         if(output_progress >= 102400)
         {
-            percent = (blocks_written / (long double)d->sz) * 100;
+            percent = (long double)((blocks_written / (long double)d->sz) * 100);
             printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, blocks_written, d->sz, percent);
             output_progress = 0;
         }
-
         ++output_progress;
     }
     COM(self, "%s complete\n", d->path);
@@ -85,7 +84,7 @@ pthread_t nnthread(nndevice_t* device)
 
 int nnwrite(FILE* fp, int bsize)
 {
-    int bytes_written = 0;
+    unsigned int bytes_written = 0;
     char* buffer = randstr(bsize);
     pthread_mutex_lock(&lock_write);
     //bytes_written = fwrite(buffer, sizeof(char), bsize, fp);

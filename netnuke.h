@@ -35,6 +35,8 @@
 #define NNLOGFILE   "netnuke.log"
 #define self        __FUNCTION__
 
+#define _FILE_OFFSET_BITS 64
+
 typedef struct nndevice_t
 {
     char path[50];
