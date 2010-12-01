@@ -37,6 +37,7 @@
 pthread_mutex_t lock_global = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_write = PTHREAD_MUTEX_INITIALIZER;
 extern unsigned long total_written_bytes;
+int logging_flag = 0;
 int verbose_flag = 0;
 int bus_mask = 0;
 int device_timeout = 0;

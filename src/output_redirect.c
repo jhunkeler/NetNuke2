@@ -27,7 +27,7 @@
 #include <time.h>
 #include "netnuke.h"
 
-extern int verbose_flag;
+extern int logging_flag;
 
 int nnlogcleanup()
 {
@@ -49,12 +49,15 @@ int COM(const char* func, char *format, ...)
     char tmpstr[255];
     int n;
 
-    /*FILE *logfp = fopen(NNLOGFILE, "a+");
-    if(logfp == NULL)
+    FILE *logfp = NULL;
+    if(logging_flag)
     {
-        COM(self, "Unable to open %s\n", NNLOGFILE);
-        verbose_flag = 1;
-    }*/
+        logfp = fopen(NNLOGFILE, "a+");
+        if(logfp == NULL)
+        {
+            fprintf(stderr, "Unable to open %s\n", NNLOGFILE);
+        }
+    }
     va_list args;
     va_start (args, format);
     n = vsprintf (str, format, args);
@@ -63,19 +66,15 @@ int COM(const char* func, char *format, ...)
     logtm = localtime(&logtime);
     snprintf(timestr, sizeof(timestr), "%02d-%02d-%02d %02d:%02d:%02d", logtm->tm_year+1900, logtm->tm_mon+1, logtm->tm_mday, logtm->tm_hour, logtm->tm_min, logtm->tm_sec);
     snprintf(tmpstr, sizeof(tmpstr), "%s _%s_: %s", timestr, func, str);
-
-    if(verbose_flag)
-    {
-        fprintf(stdout, "%s", tmpstr);
-        //fprintf(logfp, "%s", tmpstr);
-    }
-    else
-    {
-        /*fprintf(logfp, "%s", tmpstr);*/
-    }
-
     free(str);
-    /*fclose(logfp);*/
+
+    fprintf(stdout, "%s", tmpstr);
+    if(logging_flag)
+    {
+        fprintf(logfp, "%s", tmpstr);
+        fclose(logfp);
+    }
+
 
     return 0;
 }
