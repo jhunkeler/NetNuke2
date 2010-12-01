@@ -29,6 +29,7 @@
 FILE* randfp;
 unsigned int randseed;
 unsigned long long total_written_bytes;
+extern int safety_flag;
 extern pthread_mutex_t lock_global;
 extern pthread_mutex_t lock_write;
 
@@ -46,8 +47,7 @@ void* wipe(void* device)
         COM(self, "Unable to open %s: %s\n", d->path, strerror(errno));
         return (int*)1;
     }
-    COM(self, "path: %s, block size %d, blocks %llu, total bytes %llu\n",
-           d->path, d->blksz, d->blks, d->sz);
+    COM(self, "%s, block size %d, blocks %llu, total bytes %llu\n", d->path, d->blksz, d->blks, d->sz);
 
     srand(nngetseed());
     while(blocks_written < blocks)
@@ -87,8 +87,18 @@ int nnwrite(FILE* fp, int bsize)
     unsigned int bytes_written = 0;
     char* buffer = randstr(bsize);
     pthread_mutex_lock(&lock_write);
-    //bytes_written = fwrite(buffer, sizeof(char), bsize, fp);
-    bytes_written += bsize; //temporary testing
+    if(safety_flag)
+    {
+        /* simulation */
+        bytes_written += bsize;
+    }
+    else
+    {
+        /* destructive */
+        //bytes_written = fwrite(buffer, sizeof(char), bsize, fp);
+        bytes_written += bsize;
+    }
+
     total_written_bytes += bytes_written;
     pthread_mutex_unlock(&lock_write);
 

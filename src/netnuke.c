@@ -37,6 +37,7 @@
 pthread_mutex_t lock_global = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_write = PTHREAD_MUTEX_INITIALIZER;
 extern unsigned long total_written_bytes;
+int safety_flag = 0;
 int logging_flag = 0;
 int verbose_flag = 0;
 int bus_mask = 0;
@@ -48,7 +49,9 @@ static struct option long_options[] =
     {"help",    no_argument,   0,   0},
     {"verbose",    no_argument,   &verbose_flag,   1},
     {"quiet",   no_argument,    &verbose_flag,  0},
+    {"safety-off",  no_argument,    &safety_flag,  0},
     {"ignore-first",  no_argument,   0,  'i'},
+    {"logging", no_argument,    &logging_flag,  1},
     {"timeout",   required_argument,    0,  't'},
     {"scheme",  required_argument,  0,   's'},
     {"device-type",    required_argument,    0, 'd'},
@@ -60,7 +63,9 @@ static char* long_options_help[] =
     "\tThis message",
     "More output",
     "Suppress output",
+    "Enable destructive write mode",
     "Ignore first device",
+    "Log all output to netnuke.log",
     "Set timeout-to-failure (in seconds)",
     "Set nuking scheme:\n\
                         0 = zero\n\
@@ -128,6 +133,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
     }
     COM(self, "Program start\n");
+    COM(self, "Safety is %s\n", verbose_flag ? "ON" : "OFF");
 
     if(argc < 2) usage(basename(argv[0]));
     int c;
@@ -206,13 +212,12 @@ int main(int argc, char* argv[])
     COM(self, "Generating threads\n");
     for( i = 0 ; device[i] != NULL ; i++ )
     {
-        printf("%d\n", i);
         thread[i] = (pthread_t)nnthread(device[i]);
         COM(self, "thread id: %ld\n", thread[i]);
     }
 
-    COM(self, "Joining all threads\n");
     thread_count = i;
+    COM(self, "Joining %d thread%c\n", thread_count, (thread_count > 1 || thread_count < 1) ? 's' : '\b');
     for( i = 0 ; i < thread_count ; i++ )
     {
         pthread_join(thread[i], NULL);

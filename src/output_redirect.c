@@ -64,17 +64,20 @@ int COM(const char* func, char *format, ...)
     va_end (args);
 
     logtm = localtime(&logtime);
-    snprintf(timestr, sizeof(timestr), "%02d-%02d-%02d %02d:%02d:%02d", logtm->tm_year+1900, logtm->tm_mon+1, logtm->tm_mday, logtm->tm_hour, logtm->tm_min, logtm->tm_sec);
-    snprintf(tmpstr, sizeof(tmpstr), "%s _%s_: %s", timestr, func, str);
-    free(str);
 
-    fprintf(stdout, "%s", tmpstr);
     if(logging_flag)
     {
+        snprintf(timestr, sizeof(timestr), "%02d-%02d-%02d %02d:%02d:%02d", logtm->tm_year+1900, logtm->tm_mon+1, logtm->tm_mday, logtm->tm_hour, logtm->tm_min, logtm->tm_sec);
+        snprintf(tmpstr, sizeof(tmpstr), "%s _%s_: %s", timestr, func, str);
         fprintf(logfp, "%s", tmpstr);
         fclose(logfp);
     }
+    else
+    {
+        snprintf(tmpstr, sizeof(tmpstr), "_%s_: %s", func, str);
+        fprintf(stdout, "%s", tmpstr);
+    }
 
-
+    free(str);
     return 0;
 }
