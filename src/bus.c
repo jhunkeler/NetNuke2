@@ -61,9 +61,8 @@ int scanbus(nndevice_t** device, int mask)
                                 perror("device");
                                 exit(1);
                             }
-                            COM(self, "device[%d] = %d\n", j, sizeof(nndevice_t));
-                            size = blocks * blocksize;
 
+                            size = blocks * blocksize;
                             strncpy(device[j]->path, entries.gl_pathv[j], sizeof(device[j]->path));
                             device[j]->blks = blocks;
                             device[j]->sz = size;

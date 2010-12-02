@@ -30,6 +30,7 @@ FILE* randfp;
 unsigned int randseed;
 unsigned long long total_written_bytes;
 extern unsigned int blksz_override;
+extern int verbose_flag;
 extern int safety_flag;
 extern pthread_mutex_t lock_global;
 extern pthread_mutex_t lock_write;
@@ -37,23 +38,23 @@ extern pthread_mutex_t lock_write;
 void* wipe(void* device)
 {
     nndevice_t* d = (nndevice_t*)device;
-    int output_progress = 0;
-    unsigned long int blocks = 0;
-    unsigned long long blocks_written = 0;
+    unsigned long long bytes_written = 0;
     long double percent = 0.0L;
 
+    if(d->path[0] == 0)
+    {
+        return NULL;
+    }
     if(blksz_override > 0)
     {
         pthread_mutex_lock(&lock_global);
         d->blksz = blksz_override;
-        pthread_mutex_unlock(&lock_global);
         d->blks = (d->blks / d->blksz);
-        // = d->blksz * d->blks;
-        COM(self, "Writing %llu records\n", blocks);
+        pthread_mutex_unlock(&lock_global);
     }
     else
     {
-        blocks = d->blksz * d->blks;
+        d->blks = d->blksz * d->blks;
     }
 
     FILE* fp = fopen(d->path, "w+t");
@@ -65,22 +66,15 @@ void* wipe(void* device)
     COM(self, "%s, block size %d, blocks %llu, total bytes %llu\n", d->path, d->blksz, d->blks, d->sz);
 
     srand(nngetseed());
-    while(blocks_written < d->sz)
+    while(bytes_written < d->sz)
     {
-        pthread_mutex_lock(&lock_global);
-        blocks_written += nnwrite(fp, d->blksz);
-        pthread_mutex_unlock(&lock_global);
-
-        //printf("output_progress = %d\n", output_progress);
-        if(output_progress >= 512)
+        if(verbose_flag)
         {
-            pthread_mutex_lock(&lock_global);
-            percent = (long double)((blocks_written / (long double)d->sz) * 100);
-            printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, blocks_written, d->sz, percent);
-            pthread_mutex_unlock(&lock_global);
-            output_progress = 0;
+            percent = (long double)((bytes_written / (long double)d->sz) * 100);
+            printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_written, d->sz, percent);
         }
-        ++output_progress;
+
+        bytes_written += nnwrite(fp, d->blksz);
     }
     COM(self, "%s complete\n", d->path);
     pthread_exit(NULL);
@@ -104,7 +98,7 @@ int nnwrite(FILE* fp, int bsize)
 {
     unsigned int bytes_written = 0;
     char* buffer = randstr(bsize);
-    pthread_mutex_lock(&lock_write);
+    //pthread_mutex_lock(&lock_write);
     if(safety_flag)
     {
         /* simulation */
@@ -146,12 +140,14 @@ unsigned int nngetseed()
 {
     if((fread(&randseed, 1, sizeof(int), randfp)) > 0)
     {
-        COM(self, "(urandom) Seed is %lu\n", randseed);
+        if(verbose_flag)
+            COM(self, "(urandom) Seed is %lu\n", randseed);
         return randseed;
     }
 
     unsigned int t = time(NULL);
-    COM(self, "(UNIX Epoch) Seed is %lu\n", t);
+    if(verbose_flag)
+        COM(self, "(UNIX Epoch) Seed is %lu\n", t);
     return t;
 }
 

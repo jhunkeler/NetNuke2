@@ -37,6 +37,8 @@ pthread_mutex_t lock_global = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_write = PTHREAD_MUTEX_INITIALIZER;
 extern unsigned long total_written_bytes;
 unsigned int blksz_override = 0;
+int list_flag = 0;
+int ignore_flag = 0;
 int safety_flag = 0;
 int logging_flag = 0;
 int verbose_flag = 0;
@@ -49,8 +51,9 @@ static struct option long_options[] =
     {"help",    no_argument,   0,   0},
     {"verbose",    no_argument,   &verbose_flag,   1},
     {"quiet",   no_argument,    &verbose_flag,  0},
+    {"list", no_argument,   &list_flag, 1},
     {"safety-off",  no_argument,    &safety_flag,  0},
-    {"ignore-first",  no_argument,   0,  'i'},
+    {"ignore-first",  no_argument,   &ignore_flag,  1},
     {"logging", no_argument,    &logging_flag,  1},
     {"timeout",   required_argument,    0,  't'},
     {"scheme",  required_argument,  0,   's'},
@@ -64,6 +67,7 @@ static char* long_options_help[] =
     "\tThis message",
     "More output",
     "Suppress output",
+    "Print device list, then exit",
     "Enable destructive write mode",
     "Ignore first device",
     "Log all output to netnuke.log",
@@ -147,7 +151,7 @@ int main(int argc, char* argv[])
     int c;
     int option_index = 0;
 
-    while((c = getopt_long (argc, argv, "ib:s:d:t:", long_options, &option_index)) > 0)
+    while((c = getopt_long (argc, argv, "ib:s:d:t:", long_options, &option_index)) != -1)
     {
         switch (c)
         {
@@ -194,11 +198,10 @@ int main(int argc, char* argv[])
                 }
                 break;
             }
-            case 'h':
-            case ':':
+            //case 'h':
+            //case ':':
             case '?':
                 usage(basename(argv[0]));
-                break;
         }
     }
 
@@ -210,7 +213,7 @@ int main(int argc, char* argv[])
         putchar ('\n');
     }
 
-    COM(self, "Safety is %s\n", safety_flag ? "ON" : "OFF");
+    COM(self, "Safety is %s\n", safety_flag ? "OFF" : "ON");
 
     nndevice_t** device;
     device = (nndevice_t**)malloc(MAXTHREAD * sizeof(nndevice_t));
@@ -219,9 +222,17 @@ int main(int argc, char* argv[])
         perror("device list");
         exit(1);
     }
+
+    if(list_flag)
+    {
+        bus_mask = selectbus(bus_flags);
+        scanbus(device, bus_mask);
+        exit(0);
+    }
+
     pthread_t thread[MAXTHREAD];
     int thread_count = 0;
-    int i;
+    int i = 0;
 
     bus_mask = selectbus(bus_flags);
     scanbus(device, bus_mask);
@@ -231,15 +242,36 @@ int main(int argc, char* argv[])
     pthread_mutex_init(&lock_global, NULL);
 
     COM(self, "Generating threads\n");
-    for( i = 0 ; device[i] != NULL ; i++ )
+
+    if(ignore_flag)
+    {
+        int first = 0;
+        int last = 0;
+
+        while(device[i] != NULL)
+        {
+            i++;
+        }
+        last = i - 1;
+
+        COM(self, "IGNORING: %s\n", device[first]->path);
+        memmove(device[first], device[last], sizeof(nndevice_t));
+        memset(device[last], 0, sizeof(nndevice_t));
+        device[last] = NULL;
+    }
+
+
+    for( i = 0; device[i] != NULL ; i++ )
     {
         thread[i] = (pthread_t)nnthread(device[i]);
         COM(self, "thread id: %ld\n", thread[i]);
     }
+    usleep(10000);
 
     thread_count = i;
     COM(self, "Joining %d thread%c\n", thread_count, (thread_count > 1 || thread_count < 1) ? 's' : '\b');
-    for( i = 0 ; i < thread_count ; i++ )
+
+    for( i = 0 ; i < thread_count ; i++)
     {
         pthread_join(thread[i], NULL);
     }
