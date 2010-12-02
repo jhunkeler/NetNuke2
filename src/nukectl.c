@@ -29,6 +29,7 @@
 FILE* randfp;
 unsigned int randseed;
 unsigned long long total_written_bytes;
+extern unsigned int blksz_override;
 extern int safety_flag;
 extern pthread_mutex_t lock_global;
 extern pthread_mutex_t lock_write;
@@ -37,9 +38,23 @@ void* wipe(void* device)
 {
     nndevice_t* d = (nndevice_t*)device;
     int output_progress = 0;
-    unsigned long int blocks = d->blksz * d->blks;
+    unsigned long int blocks = 0;
     unsigned long long blocks_written = 0;
     long double percent = 0.0L;
+
+    if(blksz_override > 0)
+    {
+        pthread_mutex_lock(&lock_global);
+        d->blksz = blksz_override;
+        pthread_mutex_unlock(&lock_global);
+        d->blks = (d->blks / d->blksz);
+        // = d->blksz * d->blks;
+        COM(self, "Writing %llu records\n", blocks);
+    }
+    else
+    {
+        blocks = d->blksz * d->blks;
+    }
 
     FILE* fp = fopen(d->path, "w+t");
     if(fp == NULL)
@@ -50,16 +65,19 @@ void* wipe(void* device)
     COM(self, "%s, block size %d, blocks %llu, total bytes %llu\n", d->path, d->blksz, d->blks, d->sz);
 
     srand(nngetseed());
-    while(blocks_written < blocks)
+    while(blocks_written < d->sz)
     {
         pthread_mutex_lock(&lock_global);
         blocks_written += nnwrite(fp, d->blksz);
         pthread_mutex_unlock(&lock_global);
 
-        if(output_progress >= 102400)
+        //printf("output_progress = %d\n", output_progress);
+        if(output_progress >= 512)
         {
+            pthread_mutex_lock(&lock_global);
             percent = (long double)((blocks_written / (long double)d->sz) * 100);
             printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, blocks_written, d->sz, percent);
+            pthread_mutex_unlock(&lock_global);
             output_progress = 0;
         }
         ++output_progress;
