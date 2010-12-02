@@ -29,7 +29,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
-#include <ftw.h>
 #include <glob.h>
 #include <pthread.h>
 #include "netnuke.h"
@@ -37,6 +36,7 @@
 pthread_mutex_t lock_global = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_write = PTHREAD_MUTEX_INITIALIZER;
 extern unsigned long total_written_bytes;
+unsigned int blksz_override = 0;
 int safety_flag = 0;
 int logging_flag = 0;
 int verbose_flag = 0;
@@ -55,6 +55,7 @@ static struct option long_options[] =
     {"timeout",   required_argument,    0,  't'},
     {"scheme",  required_argument,  0,   's'},
     {"device-type",    required_argument,    0, 'd'},
+    {"block-size",  required_argument,  0,   'b'},
     {NULL, 0, 0, 0}
 };
 
@@ -74,6 +75,7 @@ static char* long_options_help[] =
     "Select bus:\n\
                         ide\n\
                         scsi",
+    "Block size in bytes",
     NULL
 };
 
@@ -128,18 +130,24 @@ void usage(const char* progname)
 
 int main(int argc, char* argv[])
 {
+    uid_t uid=getuid(), euid=geteuid();
+    if (uid < 0 || uid != euid)
+    {
+        COM(self, "Need root... exiting\n");
+        exit(1);
+    }
+
     if((nnlogcleanup()) != 0)
     {
         fprintf(stderr, "Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
     }
     COM(self, "Program start\n");
-    COM(self, "Safety is %s\n", verbose_flag ? "ON" : "OFF");
 
     if(argc < 2) usage(basename(argv[0]));
     int c;
     int option_index = 0;
 
-    while((c = getopt_long (argc, argv, "is:d:t:", long_options, &option_index)) > 0)
+    while((c = getopt_long (argc, argv, "ib:s:d:t:", long_options, &option_index)) > 0)
     {
         switch (c)
         {
@@ -149,6 +157,17 @@ int main(int argc, char* argv[])
                 printf ("option %s", long_options[option_index].name);
                 if (optarg) printf (" with arg %s", optarg);
                 printf ("\n");
+                break;
+            }
+            case 'b':
+            {
+                blksz_override = atoi(optarg);
+                if(blksz_override < 512)
+                {
+                    COM(self, "Block size must be a multiple of 512\n");
+                    exit(1);
+                }
+                COM(self, "Forcing %d block size\n", blksz_override);
                 break;
             }
             case 's':
@@ -190,6 +209,8 @@ int main(int argc, char* argv[])
             printf ("%s ", argv[optind++]);
         putchar ('\n');
     }
+
+    COM(self, "Safety is %s\n", safety_flag ? "ON" : "OFF");
 
     nndevice_t** device;
     device = (nndevice_t**)malloc(MAXTHREAD * sizeof(nndevice_t));
