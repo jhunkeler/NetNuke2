@@ -1,0 +1,40 @@
+PROGRAM: NetNuke
+LICENSE: GNU/GPLv3
+PURPOSE: Erases all storage media deteced by the system
+
+AUTHOR:  Joseph Hunkeler
+EMAIL:   jhunk@stsci.edu, jhunkeler@gmail.com
+
+WARNING
+-------
+
+!!!
+        DO NOT RUN NETNUKE ON A LIVE SYSTEM WITH THE
+        --SAFETY-OFF ARGUMENT ENABLED
+!!!
+
+NetNuke is designed to be executed from a livecd or an operating system
+booted via PXE.  Running NetNuke on a living breathing system will 
+result in the absolute destruction of its drive data.  You are 
+responsible for your own actions... I will not be held accountable 
+for any damages.  See the LICENSE document for more details.
+        
+        Seriously, you have been warned.
+
+BUGS
+----
+See commit logs in the git repository: http://github.com/jhunkeler/NetNuke
+
+
+OPERATING SYSTEMS SUPPORTED
+---------------------------
+
+Linux:
+        2.4 - Not Tested, and may not work
+                2.6 - Works, but needs more testing
+
+
+OPTION REFERENCE
+----------------
+[TODO]
+
