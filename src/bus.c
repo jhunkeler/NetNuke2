@@ -97,8 +97,13 @@ int scanbus(nndevice_t** device, int mask)
                         if((ioctl(fd, BLKGETSIZE, &blocks)) == 0)
                         {
                             size = blocks * blocksize;
-                            printf("%s ", entries.gl_pathv[j]);
-                            printf("%lu %lu %.2f\n", blocks, size, (double)size / (1024 * 1024 * 1024));
+                            strncpy(device[j]->path, entries.gl_pathv[j], sizeof(device[j]->path));
+                            device[j]->blks = blocks;
+                            device[j]->sz = size;
+                            device[j]->blksz = 512;
+
+                            printf("%s ", device[j]->path);
+                            printf("%llu %llu %.2f\n", device[j]->blks, device[j]->sz, (double)device[j]->sz / (1024 * 1024 * 1024));
                         }
                         close(fd);
                     }
@@ -121,19 +126,18 @@ int selectbus(char** flags)
         return (mask = BUS_BOTH);
     }
 
-    mask = 0;
     while(flags[i] != NULL)
     {
         if(!strcmp(flags[i], "ide"))
         {
             mask |= BUS_IDE;
-            printf("IDE (0x%02X)\n", mask);
+            COM(self, "IDE (0x%02X)\n", mask);
         }
 
         if(!strcmp(flags[i], "scsi"))
         {
             mask |= BUS_SCSI;
-            printf("SCSI (0x%02X)\n", mask);
+            COM(self, "SCSI (0x%02X)\n", mask);
         }
 
         i++;
