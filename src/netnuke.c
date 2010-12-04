@@ -48,7 +48,7 @@ char** bus_flags = NULL;
 
 static struct option long_options[] =
 {
-    {"help",    no_argument,   0,   0},
+    {"help",    no_argument,   0,   'h'},
     {"verbose",    no_argument,   &verbose_flag,   1},
     {"quiet",   no_argument,    &verbose_flag,  0},
     {"list", no_argument,   &list_flag, 1},
@@ -62,7 +62,8 @@ static struct option long_options[] =
     {NULL, 0, 0, 0}
 };
 
-static char* long_options_help[] =
+/* The usage function will apply these strings */
+static const char* long_options_help[] =
 {
     "\tThis message",
     "More output",
@@ -191,14 +192,14 @@ int main(int argc, char* argv[])
                 bus_flags = (char**)malloc(1024);
                 while(tok !=NULL)
                 {
-                    bus_flags[i] = (char*)malloc(strlen(tok));
-                    strncpy(bus_flags[i], tok, strlen(tok));
+                    bus_flags[i] = (char*)malloc(strlen(tok)+1);
+                    strncpy(bus_flags[i], tok, strlen(tok)+1);
                     i++;
                     tok = strtok(NULL, ",");
                 }
                 break;
             }
-            //case 'h':
+            case 'h':
             //case ':':
             case '?':
                 usage(basename(argv[0]));
@@ -234,8 +235,18 @@ int main(int argc, char* argv[])
     int thread_count = 0;
     int i = 0;
 
+    /* Select the bus mask and scan for devices */
     bus_mask = selectbus(bus_flags);
     scanbus(device, bus_mask);
+
+    /* Run check to see if any devices were returned */
+    if(device[0] == NULL)
+    {
+        COM(self, "No devices detected\n");
+        exit(0);
+    }
+
+    /* Tell the random generator to start */
     nnrandinit();
 
     COM(self, "Initializing mutex\n");
@@ -243,11 +254,13 @@ int main(int argc, char* argv[])
 
     COM(self, "Generating threads\n");
 
+    /* If the operator does wants to preserve the first device */
     if(ignore_flag)
     {
         int first = 0;
         int last = 0;
 
+        /* Count how many devices we have */
         while(device[i] != NULL)
         {
             i++;
@@ -255,19 +268,22 @@ int main(int argc, char* argv[])
         last = i - 1;
 
         COM(self, "IGNORING: %s\n", device[first]->path);
+        /* Replace the first device's array entry and then clear the original */
         memmove(device[first], device[last], sizeof(nndevice_t));
         memset(device[last], 0, sizeof(nndevice_t));
         device[last] = NULL;
     }
 
-
+    /* Start a single thread per device node*/
     for( i = 0; device[i] != NULL ; i++ )
     {
         thread[i] = (pthread_t)nnthread(device[i]);
         COM(self, "thread id: %ld\n", thread[i]);
     }
+    /* Catch up */
     usleep(10000);
 
+    /* Using the original device count, set thread_count and join all threads */
     thread_count = i;
     COM(self, "Joining %d thread%c\n", thread_count, (thread_count > 1 || thread_count < 1) ? 's' : '\b');
 
@@ -278,8 +294,10 @@ int main(int argc, char* argv[])
 
     COM(self, "Destroying mutex\n");
     pthread_mutex_destroy(&lock_global);
-
     COM(self, "Total bytes written: %lu\n", total_written_bytes);
+
+    /* Close urandom */
     nnrandfree();
+
     return 0;
 }
