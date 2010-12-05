@@ -226,7 +226,8 @@ int main(int argc, char* argv[])
     if(list_flag)
     {
         bus_mask = selectbus(bus_flags);
-        scanbus(device, bus_mask);
+        //scanbus(device, bus_mask);
+        scanbus_sysfs(device);
         exit(0);
     }
 

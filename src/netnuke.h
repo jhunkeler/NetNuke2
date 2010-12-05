@@ -55,6 +55,7 @@ void nnrandfree();
 unsigned int nngetseed();
 unsigned int nnrand(int min, int max);
 char* randstr(int size);
+int scanbus_sysfs(nndevice_t** device);
 int scanbus(nndevice_t** device,int mask);
 void showbus(int mask);
 int selectbus(char** flags);
