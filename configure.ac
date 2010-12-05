@@ -24,6 +24,6 @@ AC_CHECK_FUNCS([memmove memset strerror strncasecmp])
 
 AC_CONFIG_FILES(	\
 	Makefile	\
-	src\Makefile)
+	src/Makefile)
 
 AC_OUTPUT

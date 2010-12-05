@@ -1,8 +1,12 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CFLAGS= -Wall -O2 -I$(top_srcdir)/include -static
+netnuke_LDFLAGS= -lpthread
 
-netnuke_SOURCES =	bus.c			\
-			misc.c			\
-			netnuke.c		\
+bin_PROGRAMS = netnuke
+
+netnuke_SOURCES =	bus.c		\
+			misc.c		\
+			netnuke.c	\
+			nukectl.c	\
 			output_redirect.c
