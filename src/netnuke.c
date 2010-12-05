@@ -35,9 +35,10 @@
 
 pthread_mutex_t lock_global = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_write = PTHREAD_MUTEX_INITIALIZER;
-extern unsigned long total_written_bytes;
+extern unsigned long long total_written_bytes;
 unsigned int blksz_override = 0;
 int list_flag = 0;
+int ignore_first_flag = 0;
 int ignore_flag = 0;
 int safety_flag = 0;
 int logging_flag = 0;
@@ -45,6 +46,7 @@ int verbose_flag = 0;
 int bus_mask = 0;
 int device_timeout = 0;
 char** bus_flags = NULL;
+char** ignore_list = NULL;
 
 static struct option long_options[] =
 {
@@ -53,7 +55,8 @@ static struct option long_options[] =
     {"quiet",   no_argument,    &verbose_flag,  0},
     {"list", no_argument,   &list_flag, 1},
     {"safety-off",  no_argument,    &safety_flag,  0},
-    {"ignore-first",  no_argument,   &ignore_flag,  1},
+    {"ignore-first",  no_argument,   &ignore_first_flag,  1},
+    {"ignore",  required_argument,   0,  'i'},
     {"logging", no_argument,    &logging_flag,  1},
     {"timeout",   required_argument,    0,  't'},
     {"scheme",  required_argument,  0,   's'},
@@ -68,9 +71,10 @@ static const char* long_options_help[] =
     "\tThis message",
     "More output",
     "Suppress output",
-    "Print device list, then exit",
+    "\tPrint device list, then exit",
     "Enable destructive write mode",
     "Ignore first device",
+    "Ignore comma delimited list of devices",
     "Log all output to netnuke.log",
     "Set timeout-to-failure (in seconds)",
     "Set nuking scheme:\n\
@@ -97,7 +101,6 @@ char *ide_device_glob[] =
     "/dev/hd*[!0-9]",
     NULL
 };
-
 
 void usage(const char* progname)
 {
@@ -185,12 +188,27 @@ int main(int argc, char* argv[])
                 COM(self, "%ds timeout set\n", device_timeout);
                 break;
             }
+            case 'i':
+            {
+                ignore_flag = 1;
+                int i = 0;
+                char* tok = strtok(optarg, ",");
+                ignore_list = (char**)malloc(1024);
+                while(tok != NULL)
+                {
+                    ignore_list[i] = (char*)malloc(strlen(tok)+1);
+                    strncpy(ignore_list[i], tok, strlen(tok)+1);
+                    i++;
+                    tok = strtok(NULL, ",");
+                }
+                break;
+            }
             case 'd':
             {
                 int i = 0;
                 char* tok = strtok(optarg, ",");
                 bus_flags = (char**)malloc(1024);
-                while(tok !=NULL)
+                while(tok != NULL)
                 {
                     bus_flags[i] = (char*)malloc(strlen(tok)+1);
                     strncpy(bus_flags[i], tok, strlen(tok)+1);
@@ -200,7 +218,6 @@ int main(int argc, char* argv[])
                 break;
             }
             case 'h':
-            //case ':':
             case '?':
                 usage(basename(argv[0]));
         }
@@ -227,7 +244,6 @@ int main(int argc, char* argv[])
     if(list_flag)
     {
         bus_mask = selectbus(bus_flags);
-        //scanbus(device, bus_mask);
         scanbus_sysfs(device);
         exit(0);
     }
@@ -238,7 +254,7 @@ int main(int argc, char* argv[])
 
     /* Select the bus mask and scan for devices */
     bus_mask = selectbus(bus_flags);
-    scanbus(device, bus_mask);
+    scanbus_sysfs(device);
 
     /* Run check to see if any devices were returned */
     if(device[0] == NULL)
@@ -252,11 +268,10 @@ int main(int argc, char* argv[])
 
     COM(self, "Initializing mutex\n");
     pthread_mutex_init(&lock_global, NULL);
-
     COM(self, "Generating threads\n");
 
-    /* If the operator does wants to preserve the first device */
-    if(ignore_flag)
+    /* If the operator wants to preserve the first device */
+    if(ignore_first_flag)
     {
         int first = 0;
         int last = 0;
@@ -273,6 +288,11 @@ int main(int argc, char* argv[])
         memmove(device[first], device[last], sizeof(nndevice_t));
         memset(device[last], 0, sizeof(nndevice_t));
         device[last] = NULL;
+    }
+
+    if(ignore_flag)
+    {
+        ignore_device(ignore_list, device);
     }
 
     /* Start a single thread per device node*/
