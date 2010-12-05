@@ -35,6 +35,25 @@ extern int safety_flag;
 extern pthread_mutex_t lock_global;
 extern pthread_mutex_t lock_write;
 
+void ignore_device(char** list, nndevice_t** d)
+{
+    int i = 0;
+    int j = 0;
+
+    for( i = 0 ; d[i] != NULL ; i++ )
+    {
+        for( j = 0 ; list[j] != NULL ; j++ )
+        {
+            if(!strncasecmp(d[i]->path, list[j], strlen(list[j])))
+            {
+                COM(self, "%s\n", list[j]);
+                memset(d[i], 0, sizeof(nndevice_t));
+                //memmove(d[end-1], d[i], sizeof(nndevice_t));
+            }
+        }
+    }
+}
+
 void* wipe(void* device)
 {
     nndevice_t* d = (nndevice_t*)device;
