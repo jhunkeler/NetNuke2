@@ -39,12 +39,16 @@
 
 typedef struct nndevice_t
 {
+    char vendor[50];
+    char model[50];
     char path[50];
     unsigned int blksz;
     unsigned long long blks;
     unsigned long long sz;
 } nndevice_t;
 
+void ignore_device(char** list, nndevice_t** d);
+int strind(const char* str, const char ch);
 int nnlogcleanup();
 int COM(const char* func, char *format, ...);
 void* wipe(void* device);
