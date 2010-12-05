@@ -35,50 +35,110 @@ extern char* ide_device_glob[];
 
 int scanbus_sysfs(nndevice_t** device)
 {
-    char tmpstr[128];
     const char* scsi_path = "/sys/class/scsi_disk";
-    DIR *pdir;
-    struct dirent *pdent;
-    DIR *pbdir;
-    struct dirent *pbent;
+    char tmpstr[128];
+    int i = 0;
+    int fd = -1;
+    FILE* fp = NULL;
+    DIR* pbase;
+    DIR* pblock;
+    struct dirent* pbaseent;
+    struct dirent* pblockent;
 
-    /* scan for scsi devices via sysfs */
+    /* scan for scsi devices (and with libata enabled ... ide devices too) via sysfs */
     if((access(scsi_path, F_OK)) != 0)
     {
         COM(self, "Sysfs not available\n");
         return 1;
     }
 
-    pdir = opendir(scsi_path);
-    if(!pdir)
+    pbase = opendir(scsi_path);
+    if(!pbase)
     {
         COM(self, "fatal opendir: %s\n", strerror(errno));
         exit(1);
     }
 
-    while((pdent = readdir(pdir)))
+    while((pbaseent = readdir(pbase)))
     {
-        if(!strncasecmp(pdent->d_name, ".", 1) || !strncasecmp(pdent->d_name, "..", 2))
+        device[i] = (nndevice_t*)malloc(sizeof(nndevice_t));
+        if(device[i] == NULL)
+        {
+            perror("device");
+            exit(1);
+        }
+
+        if(!strncasecmp(pbaseent->d_name, ".", 1) || !strncasecmp(pbaseent->d_name, "..", 2))
             continue;
 
-        sprintf(tmpstr, "%s/%s/device/block", scsi_path, pdent->d_name);
-        pbdir = opendir(tmpstr);
-        if(!pbdir)
+        /* set model */
+        snprintf(tmpstr, sizeof(tmpstr), "%s/%s/device/model", scsi_path, pbaseent->d_name);
+        fp = fopen(tmpstr, "r");
+        if(fp == NULL)
+        {
+            COM(self, "Could not retrieve model information from %s: %s\n", tmpstr, strerror(errno));
+        }
+        else
+        {
+            fgets(device[i]->model, sizeof(device[i]->model), fp);
+            device[i]->model[strlen(device[i]->model) - 1] = 0;
+
+            fclose(fp);
+        }
+
+        /* set vendor */
+        snprintf(tmpstr, sizeof(tmpstr), "%s/%s/device/vendor", scsi_path, pbaseent->d_name);
+        fp = fopen(tmpstr, "r");
+        if(fp == NULL)
+        {
+            COM(self, "Could not retrieve vendor information from %s: %s\n", tmpstr, strerror(errno));
+        }
+        else
+        {
+            fgets(device[i]->vendor, sizeof(device[i]->model), fp);
+            /* Why does sysfs not terminate the string after the last character?  Kernel 2.6 bug?
+             Here we are checking for the space character and terminating it manually. */
+            device[i]->vendor[strind(device[i]->vendor, ' ')] = 0;
+            fclose(fp);
+        }
+
+        snprintf(tmpstr, sizeof(tmpstr), "%s/%s/device/block", scsi_path, pbaseent->d_name);
+        pblock = opendir(tmpstr);
+        if(!pblock)
         {
             COM(self, "fatal opendir: %s\n", strerror(errno));
             exit(1);
         }
 
-        while((pbent = readdir(pbdir)))
+        while((pblockent = readdir(pblock)))
         {
-            if(!strncasecmp(pbent->d_name, ".", 1) || !strncasecmp(pbent->d_name, "..", 2))
+            if(!strncasecmp(pblockent->d_name, ".", 1) || !strncasecmp(pblockent->d_name, "..", 2))
                 continue;
 
-            printf("%s - %s\n", pdent->d_name, pbent->d_name);
+            /* set path */
+            snprintf(device[i]->path, sizeof(device[i]->path), "/dev/%s", pblockent->d_name);
         }
-        closedir(pbdir);
+        closedir(pblock);
+
+        /* set number of blocks */
+        fd = open(device[i]->path, O_RDONLY | O_NONBLOCK);
+        if(fd >= 0)
+        {
+            if((ioctl(fd, BLKGETSIZE, &device[i]->blks)) != 0)
+            {
+                COM(self, "ioctl: could not retrieve block count for %s\n", device[i]->path);
+                device[i]->blks = 0;
+            }
+            close(fd);
+        }
+
+        device[i]->blksz = 512;
+        device[i]->sz = device[i]->blks * device[i]->blksz;
+
+        COM(self, "%s %s %s %llu\n", device[i]->vendor, device[i]->path, device[i]->model, (device[i]->blks * device[i]->blksz));
+        ++i;
     }
-    closedir(pdir);
+    closedir(pbase);
 
     return 0;
 }
