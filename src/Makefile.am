@@ -1,8 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
-sbin_PROGRAMS = netnuke
+sbin_PROGRAMS= netnuke
 
-netnuke_SOURCES =	bus.c		\
+netnuke_SOURCES=	bus.c		\
 			misc.c		\
 			netnuke.c	\
 			nukectl.c	\
