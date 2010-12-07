@@ -6,9 +6,6 @@ AC_CONFIG_SRCDIR([src/netnuke.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SUBDIRS([sysfsutils])
 
-CFLAGS="-Wall -O2 -I../include -static"
-LDFLAGS="-lpthread -lrt"
-
 # Checks for programs.
 AC_PROG_CC_C99
 AS_IF([test "$ac_cv_prog_cc_c99" = "no"],

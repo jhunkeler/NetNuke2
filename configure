@@ -2633,9 +2633,6 @@ ac_config_headers="$ac_config_headers config.h"
 subdirs="$subdirs sysfsutils"
 
 
-CFLAGS="-Wall -O2 -I../include -static"
-LDFLAGS="-lpthread -lrt"
-
 # Checks for programs.
 DEPDIR="${am__leading_dot}deps"
 

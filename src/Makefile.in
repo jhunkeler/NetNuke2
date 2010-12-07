@@ -150,6 +150,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
+AM_CFLAGS = -Wall -O2 -I../include -I../sysfsutils/include -static
+AM_LDFLAGS = -lpthread -lrt
 netnuke_SOURCES = bus.c		\
 			misc.c		\
 			netnuke.c	\
