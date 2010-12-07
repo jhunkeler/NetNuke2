@@ -4,9 +4,11 @@ AM_INIT_AUTOMAKE(1.11.1)
 
 AC_CONFIG_SRCDIR([src/netnuke.c])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SUBDIRS([sysfsutils])
 
 # Checks for programs.
+AC_PROG_LIBTOOL
+AC_SUBST(LIBTOOL_DEPS)
+
 AC_PROG_CC_C99
 AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
 	[AC_MSG_ERROR([no C99 compiler found. Aborting.])])
@@ -25,6 +27,6 @@ AC_TYPE_UID_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS_ONCE([memmove memset strerror strncasecmp])
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile libsysfs/Makefile src/Makefile])
 
 AC_OUTPUT

@@ -1,2 +1,2 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = sysfsutils src
+SUBDIRS = libsysfs src
