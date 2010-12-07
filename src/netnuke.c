@@ -138,13 +138,14 @@ void usage(const char* progname)
 
 int main(int argc, char* argv[])
 {
+/*  Re-enable this later... jesus testing is getting annoying.
     uid_t uid=getuid(), euid=geteuid();
-    if (uid < 0 || uid != euid)
+    if (uid != 0 || uid != euid)
     {
         COM(self, "Need root... exiting\n");
         exit(1);
     }
-
+*/
     if((nnlogcleanup()) != 0)
     {
         fprintf(stderr, "Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
@@ -299,7 +300,7 @@ int main(int argc, char* argv[])
     for( i = 0; device[i] != NULL ; i++ )
     {
         thread[i] = (pthread_t)nnthread(device[i]);
-        COM(self, "thread id: %ld\n", thread[i]);
+        COM(self, "thread id: %8X %8X\n", thread[i]);
     }
     /* Catch up */
     usleep(10000);

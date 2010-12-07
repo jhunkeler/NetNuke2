@@ -24,11 +24,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <fcntl.h>
 #include "netnuke.h"
 
 FILE* randfp;
 unsigned int randseed;
-unsigned long long total_written_bytes;
+unsigned long long total_written_bytes = 0;
 extern unsigned int blksz_override;
 extern int verbose_flag;
 extern int safety_flag;
@@ -76,8 +77,8 @@ void* wipe(void* device)
         d->blks = d->blksz * d->blks;
     }
 
-    FILE* fp = fopen(d->path, "w+t");
-    if(fp == NULL)
+    int fd = open(d->path, O_WRONLY | O_SYNC);
+    if(fd < 0)
     {
         COM(self, "Unable to open %s: %s\n", d->path, strerror(errno));
         return (int*)1;
@@ -93,7 +94,7 @@ void* wipe(void* device)
             printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_written, d->sz, percent);
         }
 
-        bytes_written += nnwrite(fp, d->blksz);
+        bytes_written += nnwrite(fd, d->blksz);
     }
     COM(self, "%s complete\n", d->path);
     pthread_exit(NULL);
@@ -113,11 +114,11 @@ pthread_t nnthread(nndevice_t* device)
     return thread;
 }
 
-int nnwrite(FILE* fp, int bsize)
+int nnwrite(int fd, int bsize)
 {
     unsigned int bytes_written = 0;
     char* buffer = randstr(bsize);
-    //pthread_mutex_lock(&lock_write);
+    pthread_mutex_lock(&lock_write);
     if(safety_flag)
     {
         /* simulation */
@@ -126,11 +127,11 @@ int nnwrite(FILE* fp, int bsize)
     else
     {
         /* destructive */
-        //bytes_written = fwrite(buffer, sizeof(char), bsize, fp);
+        //bytes_written = write(fd, buffer, bsize);
         bytes_written += bsize;
     }
 
-    total_written_bytes += bytes_written;
+    //total_written_bytes += bytes_written;
     pthread_mutex_unlock(&lock_write);
 
     free(buffer);

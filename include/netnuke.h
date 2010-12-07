@@ -53,7 +53,7 @@ int nnlogcleanup();
 int COM(const char* func, char *format, ...);
 void* wipe(void* device);
 pthread_t nnthread(nndevice_t* device);
-int nnwrite(FILE* fp, int bsize);
+int nnwrite(int fd, int bsize);
 void nnrandinit();
 void nnrandfree();
 unsigned int nngetseed();
