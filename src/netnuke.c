@@ -269,6 +269,7 @@ int main(int argc, char* argv[])
 
     COM(self, "Initializing mutex\n");
     pthread_mutex_init(&lock_global, NULL);
+    pthread_mutex_init(&lock_write, NULL);
     COM(self, "Generating threads\n");
 
     /* If the operator wants to preserve the first device */
@@ -316,6 +317,7 @@ int main(int argc, char* argv[])
 
     COM(self, "Destroying mutex\n");
     pthread_mutex_destroy(&lock_global);
+    pthread_mutex_destroy(&lock_write);
     COM(self, "Total bytes written: %lu\n", total_written_bytes);
 
     /* Close urandom */
