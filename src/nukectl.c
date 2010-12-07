@@ -69,12 +69,8 @@ void* wipe(void* device)
     {
         pthread_mutex_lock(&lock_global);
         d->blksz = blksz_override;
-        d->blks = (d->blks / d->blksz);
+        //d->blks = (d->blks / d->blksz);
         pthread_mutex_unlock(&lock_global);
-    }
-    else
-    {
-        d->blks = d->blksz * d->blks;
     }
 
     int fd = open(d->path, O_WRONLY | O_SYNC);
@@ -86,15 +82,24 @@ void* wipe(void* device)
     COM(self, "%s, block size %d, blocks %llu, total bytes %llu\n", d->path, d->blksz, d->blks, d->sz);
 
     srand(nngetseed());
-    while(bytes_written < d->sz)
+    while(bytes_written <= d->sz)
     {
-        if(verbose_flag)
+        if((pthread_mutex_trylock(&lock_global)))
         {
-            percent = (long double)((bytes_written / (long double)d->sz) * 100);
-            printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_written, d->sz, percent);
-        }
+            //COM(self, "tid %X %X got lock_global\n", pthread_self());
+            if(verbose_flag)
+            {
+                percent = (long double)((bytes_written / (long double)d->sz) * 100);
+                printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_written, d->sz, percent);
+            }
 
-        bytes_written += nnwrite(fd, d->blksz);
+            bytes_written += nnwrite(fd, d->blksz);
+            pthread_mutex_unlock(&lock_global);
+        }
+        else
+        {
+            //COM(self, "tid %X %X did not get lock_global\n", pthread_self());
+        }
     }
     COM(self, "%s complete\n", d->path);
     pthread_exit(NULL);
