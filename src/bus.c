@@ -80,8 +80,8 @@ int scanbus_sysfs(nndevice_t** device)
         }
         else
         {
-            fgets(device[i]->model, sizeof(device[i]->model), fp);
-            device[i]->model[strlen(device[i]->model) - 1] = 0;
+            if(fgets(device[i]->model, sizeof(device[i]->model), fp) != NULL)
+                device[i]->model[strlen(device[i]->model) - 1] = 0;
 
             fclose(fp);
         }
@@ -95,10 +95,11 @@ int scanbus_sysfs(nndevice_t** device)
         }
         else
         {
-            fgets(device[i]->vendor, sizeof(device[i]->model), fp);
-            /* Why does sysfs not terminate the string after the last character?  Kernel 2.6 bug?
+             /* Why does sysfs not terminate the string after the last character?  Kernel 2.6 bug?
              Here we are checking for the space character and terminating it manually. */
-            device[i]->vendor[strind(device[i]->vendor, ' ')] = 0;
+            if((fgets(device[i]->vendor, sizeof(device[i]->model), fp)) != NULL)
+                device[i]->vendor[strind(device[i]->vendor, ' ')] = 0;
+
             fclose(fp);
         }
 
