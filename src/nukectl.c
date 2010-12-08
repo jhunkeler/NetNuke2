@@ -59,7 +59,9 @@ void ignore_device(char** list, nndevice_t** d)
 void* wipe(void* device)
 {
     nndevice_t* d = (nndevice_t*)device;
-    unsigned long long bytes_written = 0;
+    unsigned long long times = 0;
+    unsigned long long block = 0;
+    unsigned long long bytes_out = 0;
     long double percent = 0.0L;
 
     if(d->path[0] == 0)
@@ -80,20 +82,22 @@ void* wipe(void* device)
     COM(self, "%s, block size %d, blocks %llu, total bytes %llu\n", d->path, d->blksz, d->blks, d->sz);
     srand(nngetseed());
 
-    while(bytes_written <= d->sz)
+    times = d->sz / d->blksz;
+    while(block <= times)
     {
         if(!writing)
         {
             if(verbose_flag)
             {
-                percent = (long double)((bytes_written / (long double)d->sz) * 100);
-                printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_written, d->sz, percent);
+                percent = (long double)((bytes_out / (long double)d->sz) * 100);
+                printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_out, d->sz, percent);
             }
-            bytes_written += nnwrite(fd, d->blksz);
+            bytes_out += nnwrite(fd, d->blksz);
+            block++;
         }
     }
-
-    COM(self, "%s complete\n", d->path);
+    close(fd);
+    COM(self, "%s complete, wrote %llu bytes\n", d->path, bytes_out);
     pthread_exit(NULL);
 
     return NULL;
