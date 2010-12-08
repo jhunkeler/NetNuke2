@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 AM_CFLAGS=-Wall -W -Wstrict-prototypes -I../include -static
-AM_LDFLAGS=-L../libsysfs -lpthread -lsysfs -version-info 2:0:2 -all-static
+AM_LDFLAGS=-L../libsysfs -lpthread -lsysfs -all-static
 
 sbin_PROGRAMS= netnuke
 
