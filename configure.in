@@ -5,13 +5,16 @@ AM_INIT_AUTOMAKE(1.11.1)
 AC_CONFIG_SRCDIR([src/netnuke.c])
 AC_CONFIG_HEADERS([config.h])
 
-# Checks for programs.
-AC_PROG_LIBTOOL
-AC_SUBST(LIBTOOL_DEPS)
-
+# Check for programs.
 AC_PROG_CC_C99
 AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
 	[AC_MSG_ERROR([no C99 compiler found. Aborting.])])
+
+# Initializing libtool.
+AC_DISABLE_SHARED
+AC_PROG_LIBTOOL
+AC_SUBST(LIBTOOL_DEPS)
+LIBTOOL="$LIBTOOL --silent"
 
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_create], [],
