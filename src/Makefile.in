@@ -38,7 +38,7 @@ sbin_PROGRAMS = netnuke$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -181,8 +181,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
-AM_CFLAGS = -Wall -O2 -I../include -static
-AM_LDFLAGS = -lpthread -lrt -lsysfs
+AM_CFLAGS = -Wall -W -Wstrict-prototypes -I../include -static
+AM_LDFLAGS = -L../libsysfs -lpthread -lsysfs -version-info 2:0:2 -all-static
 netnuke_SOURCES = bus.c		\
 			misc.c		\
 			netnuke.c	\
