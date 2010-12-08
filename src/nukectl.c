@@ -28,6 +28,7 @@
 #include "netnuke.h"
 
 FILE* randfp;
+int writing = 0;
 unsigned int randseed;
 unsigned long long total_written_bytes = 0;
 extern unsigned int blksz_override;
@@ -67,10 +68,7 @@ void* wipe(void* device)
     }
     if(blksz_override > 0)
     {
-        pthread_mutex_lock(&lock_global);
         d->blksz = blksz_override;
-        //d->blks = (d->blks / d->blksz);
-        pthread_mutex_unlock(&lock_global);
     }
 
     int fd = open(d->path, O_WRONLY | O_SYNC);
@@ -80,27 +78,21 @@ void* wipe(void* device)
         return (int*)1;
     }
     COM(self, "%s, block size %d, blocks %llu, total bytes %llu\n", d->path, d->blksz, d->blks, d->sz);
-
     srand(nngetseed());
+
     while(bytes_written <= d->sz)
     {
-        if((pthread_mutex_trylock(&lock_global)))
+        if(!writing)
         {
-            //COM(self, "tid %X %X got lock_global\n", pthread_self());
             if(verbose_flag)
             {
                 percent = (long double)((bytes_written / (long double)d->sz) * 100);
                 printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_written, d->sz, percent);
             }
-
             bytes_written += nnwrite(fd, d->blksz);
-            pthread_mutex_unlock(&lock_global);
-        }
-        else
-        {
-            //COM(self, "tid %X %X did not get lock_global\n", pthread_self());
         }
     }
+
     COM(self, "%s complete\n", d->path);
     pthread_exit(NULL);
 
@@ -124,6 +116,7 @@ int nnwrite(int fd, int bsize)
     unsigned int bytes_written = 0;
     char* buffer = randstr(bsize);
     pthread_mutex_lock(&lock_write);
+    writing = 1;
     if(safety_flag)
     {
         /* simulation */
@@ -135,7 +128,7 @@ int nnwrite(int fd, int bsize)
         //bytes_written = write(fd, buffer, bsize);
         bytes_written += bsize;
     }
-
+    writing = 0;
     //total_written_bytes += bytes_written;
     pthread_mutex_unlock(&lock_write);
 

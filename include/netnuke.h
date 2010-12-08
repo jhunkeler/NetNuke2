@@ -49,14 +49,14 @@ typedef struct nndevice_t
 
 void ignore_device(char** list, nndevice_t** d);
 int strind(const char* str, const char ch);
-int nnlogcleanup();
+int nnlogcleanup(void);
 int COM(const char* func, char *format, ...);
 void* wipe(void* device);
 pthread_t nnthread(nndevice_t* device);
 int nnwrite(int fd, int bsize);
-void nnrandinit();
-void nnrandfree();
-unsigned int nngetseed();
+void nnrandinit(void);
+void nnrandfree(void);
+unsigned int nngetseed(void);
 unsigned int nnrand(int min, int max);
 char* randstr(int size);
 int scanbus_sysfs(nndevice_t** device);
