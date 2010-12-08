@@ -134,7 +134,7 @@ int scanbus_sysfs(nndevice_t** device)
         }
 
         device[i]->blksz = 512;
-        device[i]->sz = device[i]->blks * device[i]->blksz;
+        device[i]->sz = device[i]->blks * 512;
 
         COM(self, "%s %s %s %llu\n", device[i]->vendor, device[i]->path, device[i]->model, (device[i]->blks * device[i]->blksz));
         ++i;
