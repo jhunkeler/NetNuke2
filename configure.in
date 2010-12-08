@@ -5,6 +5,9 @@ AM_INIT_AUTOMAKE(1.11.1)
 AC_CONFIG_SRCDIR([src/netnuke.c])
 AC_CONFIG_HEADERS([config.h])
 
+# Compile with safe optimizations and no debugging by default
+CFLAGS="-Os"
+
 # Check for programs.
 AC_PROG_AWK
 AC_PROG_CC

@@ -2923,6 +2923,9 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 ac_config_headers="$ac_config_headers config.h"
 
 
+# Compile with safe optimizations and no debugging by default
+CFLAGS="-Os"
+
 # Check for programs.
 for ac_prog in gawk mawk nawk awk
 do
