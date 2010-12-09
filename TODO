@@ -1,6 +1,3 @@
-<?xml version="1.0"?>
-<gtodo>
-  <category title="Personal" place="0"/>
-  <category title="Business" place="1"/>
-  <category title="Unfiled" place="2"/>
-</gtodo>
+-- extrarius' list
+* Convert output_redirect.c to log.c and set up the logging to use SYSLOG facility style logic
+* Implement libsysfs into bus.c
