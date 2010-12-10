@@ -1,0 +1,4 @@
+#!/bin/bash
+rm -rf aclocal.m4 config.h.in autom4te.cache/ Makefile.in libsysfs/Makefile.in src/Makefile.in configure &&
+aclocal && autoheader && automake && autoconf &&
+rm -rf autom4te*.cache
