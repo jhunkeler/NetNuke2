@@ -43,6 +43,7 @@ int nnlogcleanup()
 
 extern WINDOW* main_window;
 extern pthread_mutex_t main_window_lock;
+int printrow = 0;
 int COM(const char* func, char *format, ...)
 {
     struct tm *logtm;
@@ -79,8 +80,13 @@ int COM(const char* func, char *format, ...)
     {
         snprintf(tmpstr, sizeof(tmpstr), "_%s_: %s", func, str);
         //fprintf(stdout, "%s", tmpstr);
+        pthread_mutex_lock(&main_window_lock);
+        //mvprintw(main_window, printrow, 2, "%s", tmpstr);
         wprintw(main_window, "%s", tmpstr);
-        wrefresh(main_window);
+        wmove(main_window, printrow, 2);
+        update_window(main_window);
+        printrow++;
+        pthread_mutex_unlock(&main_window_lock);
     }
 
     free(str);

@@ -70,6 +70,7 @@ void free_window(WINDOW* window);
 void* main_window_worker(void* args);
 void main_init(void);
 void main_deinit(void);
+void update_window(WINDOW* window);
 
 
 #endif //NETNUKE_H

@@ -30,6 +30,7 @@
 
 FILE* randfp;
 int writing = 0;
+int rowpos = 0;
 unsigned int randseed;
 unsigned long long total_written_bytes = 0;
 extern unsigned int blksz_override;
@@ -66,6 +67,14 @@ void* wipe(void* device)
     unsigned long long block = 0;
     unsigned long long bytes_out = 0;
     long double percent = 0.0L;
+    int lrow = 0;
+
+    pthread_mutex_lock(&lock_global);
+    rowpos++;
+    lrow = rowpos;
+    pthread_mutex_unlock(&lock_global);
+
+
 
     if(d->path[0] == 0)
     {
@@ -82,7 +91,7 @@ void* wipe(void* device)
         COM(self, "Unable to open %s: %s\n", d->path, strerror(errno));
         return (int*)1;
     }
-    COM(self, "%s, block size %d, blocks %llu, total bytes %llu\n", d->path, d->blksz, d->blks, d->sz);
+    COM(self, "%s, block size %d, blocks %llu, total bytes %llu", d->path, d->blksz, d->blks, d->sz);
     srand(nngetseed());
 
     times = d->sz / d->blksz;
@@ -94,8 +103,10 @@ void* wipe(void* device)
             {
                 percent = (long double)((bytes_out / (long double)d->sz) * 100);
                 //COM(self, "%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_out, d->sz, percent);
-                mvwprintw(info_window, 0, 0, "%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_out, d->sz, percent);
-                wrefresh(info_window);
+                pthread_mutex_lock(&lock_global);
+                mvwprintw(info_window, lrow, 2, "%s: %llu of %llu (%0.2Lf%%)\r", d->path, bytes_out, d->sz, percent);
+                update_window(info_window);
+                pthread_mutex_unlock(&lock_global);
             }
             bytes_out += nnwrite(fd, d->blksz);
             block++;
