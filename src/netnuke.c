@@ -47,6 +47,7 @@ int bus_mask = 0;
 int device_timeout = 0;
 char** bus_flags = NULL;
 char** ignore_list = NULL;
+nndevice_t** device;
 
 static struct option long_options[] =
 {
@@ -150,7 +151,6 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Failed to cleanup %s: %s\n", NNLOGFILE, strerror(errno));
     }
-    COM(self, "Program start\n");
 
     if(argc < 2) usage(basename(argv[0]));
     int c;
@@ -173,10 +173,10 @@ int main(int argc, char* argv[])
                 blksz_override = atoi(optarg);
                 if(blksz_override < 512)
                 {
-                    COM(self, "Block size must be a multiple of 512\n");
+                    fprintf(stderr, "Block size must be a multiple of 512\n");
                     exit(1);
                 }
-                COM(self, "Forcing %d block size\n", blksz_override);
+
                 break;
             }
             case 's':
@@ -186,7 +186,6 @@ int main(int argc, char* argv[])
             case 't':
             {
                 device_timeout = atoi(optarg);
-                COM(self, "%ds timeout set\n", device_timeout);
                 break;
             }
             case 'i':
@@ -232,96 +231,12 @@ int main(int argc, char* argv[])
         putchar ('\n');
     }
 
-    COM(self, "Safety is %s\n", safety_flag ? "OFF" : "ON");
+    /* Initialize ncurses */
+    initscr();
 
-    nndevice_t** device;
-    device = (nndevice_t**)malloc(MAXTHREAD * sizeof(nndevice_t));
-    if(device == NULL)
-    {
-        perror("device list");
-        exit(1);
-    }
-
-    if(list_flag)
-    {
-        bus_mask = selectbus(bus_flags);
-        scanbus_sysfs(device);
-        exit(0);
-    }
-
-    pthread_t thread[MAXTHREAD];
-    int thread_count = 0;
-    int i = 0;
-
-    /* Select the bus mask and scan for devices */
-    bus_mask = selectbus(bus_flags);
-    scanbus_sysfs(device);
-
-    /* Run check to see if any devices were returned */
-    if(device[0] == NULL)
-    {
-        COM(self, "No devices detected\n");
-        exit(0);
-    }
-
-    /* Tell the random generator to start */
-    nnrandinit();
-
-    COM(self, "Initializing mutex\n");
-    pthread_mutex_init(&lock_global, NULL);
-    pthread_mutex_init(&lock_write, NULL);
-    COM(self, "Generating threads\n");
-
-    /* If the operator wants to preserve the first device */
-    if(ignore_first_flag)
-    {
-        int first = 0;
-        int last = 0;
-
-        /* Count how many devices we have */
-        while(device[i] != NULL)
-        {
-            i++;
-        }
-        last = i - 1;
-
-        COM(self, "IGNORING: %s\n", device[first]->path);
-        /* Replace the first device's array entry and then clear the original */
-        memmove(device[first], device[last], sizeof(nndevice_t));
-        memset(device[last], 0, sizeof(nndevice_t));
-        device[last] = NULL;
-    }
-
-    if(ignore_flag)
-    {
-        ignore_device(ignore_list, device);
-    }
-
-    /* Start a single thread per device node*/
-    for( i = 0; device[i] != NULL ; i++ )
-    {
-        thread[i] = (pthread_t)nnthread(device[i]);
-        COM(self, "thread id: %8X %8X\n", thread[i]);
-    }
-    /* Catch up */
-    usleep(10000);
-
-    /* Using the original device count, set thread_count and join all threads */
-    thread_count = i;
-    COM(self, "Joining %d thread%c\n", thread_count, (thread_count > 1 || thread_count < 1) ? 's' : '\b');
-
-    for( i = 0 ; i < thread_count ; i++)
-    {
-        pthread_join(thread[i], NULL);
-    }
-
-    COM(self, "Destroying mutex\n");
-    pthread_mutex_destroy(&lock_global);
-    pthread_mutex_destroy(&lock_write);
-    COM(self, "Total bytes written: %lu\n", total_written_bytes);
-
-    /* Close urandom */
-    nnrandfree();
+    /* Initialize secondary main thread */
+    main_init();
+    endwin();
 
     return 0;
 }

@@ -22,6 +22,7 @@
 #define NETNUKE_H
 
 #include "config.h"
+#include <ncurses.h>
 
 #define AUTHOR          "Joseph Hunkeler"
 #define LICENSE         "GPLv3"
@@ -64,6 +65,11 @@ int scanbus(nndevice_t** device,int mask);
 void showbus(int mask);
 int selectbus(char** flags);
 void usage(const char* progname);
+WINDOW *create_window(int height, int width, int starty, int startx);
+void free_window(WINDOW* window);
+void* main_window_worker(void* args);
+void main_init(void);
+void main_deinit(void);
 
 
 #endif //NETNUKE_H

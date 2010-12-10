@@ -42,6 +42,7 @@ int nnlogcleanup()
 
 int COM(const char* func, char *format, ...)
 {
+    extern WINDOW* main_window;
     struct tm *logtm;
     time_t logtime = time(NULL);
     char timestr[64];
@@ -75,7 +76,9 @@ int COM(const char* func, char *format, ...)
     else
     {
         snprintf(tmpstr, sizeof(tmpstr), "_%s_: %s", func, str);
-        fprintf(stdout, "%s", tmpstr);
+        //fprintf(stdout, "%s", tmpstr);
+        wprintw(main_window, "%s", tmpstr);
+        wrefresh(main_window);
     }
 
     free(str);
