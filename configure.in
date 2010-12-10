@@ -23,9 +23,12 @@ LIBTOOL="$LIBTOOL --silent"
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_create], [],
 	[AC_MSG_ERROR([required library pthread missing])])
+	
+AC_CHECK_LIB([ncurses], [initscr], [],
+    [AC_MSG_ERROR([required library ncurses missing])])
 
 # Checks for header files.
-AC_CHECK_HEADERS_ONCE([fcntl.h stddef.h stdlib.h string.h sys/ioctl.h unistd.h])
+AC_CHECK_HEADERS_ONCE([fcntl.h ncurses.h stddef.h stdlib.h string.h sys/ioctl.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
