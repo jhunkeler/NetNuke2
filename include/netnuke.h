@@ -21,6 +21,8 @@
 #ifndef NETNUKE_H
 #define NETNUKE_H
 
+#include "config.h"
+
 #define AUTHOR          "Joseph Hunkeler"
 #define LICENSE         "GPLv3"
 #define VERSION_MAJOR   2
@@ -34,8 +36,6 @@
 
 #define NNLOGFILE   "netnuke.log"
 #define self        __FUNCTION__
-
-#define _FILE_OFFSET_BITS 64
 
 typedef struct nndevice_t
 {

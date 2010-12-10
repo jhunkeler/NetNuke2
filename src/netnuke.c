@@ -105,7 +105,7 @@ char *ide_device_glob[] =
 void usage(const char* progname)
 {
     int i;
-    printf("%s v%d.%d %s %s\n", progname, VERSION_MAJOR, VERSION_MINOR, LICENSE, AUTHOR);
+    printf("%s %s %s <%s>\n", PACKAGE_STRING, LICENSE, AUTHOR, PACKAGE_BUGREPORT);
     printf("usage: %s ", progname);
     for( i = 0 ; long_options[i].name != NULL ; i++ )
     {
