@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <openssl/ssl.h>
 #include "netnuke.h"
 
 FILE* randfp;

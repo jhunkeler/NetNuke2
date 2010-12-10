@@ -26,9 +26,12 @@ AC_CHECK_LIB([pthread], [pthread_create], [],
 	
 AC_CHECK_LIB([ncurses], [initscr], [],
     [AC_MSG_ERROR([required library ncurses missing])])
+    
+AC_CHECK_LIB([ssl], [SSL_library_init], [],
+    [AC_MSG_ERROR([required library openssl missing])])
 
 # Checks for header files.
-AC_CHECK_HEADERS_ONCE([fcntl.h ncurses.h stddef.h stdlib.h string.h sys/ioctl.h unistd.h])
+AC_CHECK_HEADERS_ONCE([errno.h fcntl.h linux/fs.h ncurses.h openssl/ssl.h stddef.h stdlib.h string.h sys/ioctl.h sys/syslog.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -51,7 +54,7 @@ fi
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS_ONCE([getpagesize memmove memset strchr strerror strncasecmp strrchr strstr])
+AC_CHECK_FUNCS_ONCE([getpagesize memmove memset strchr strerror strncasecmp strrchr strstr usleep])
 
 AC_CONFIG_FILES([Makefile libsysfs/Makefile src/Makefile])
 

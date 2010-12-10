@@ -2329,12 +2329,16 @@ $as_echo "$as_me: creating cache $cache_file" >&6;}
   >$cache_file
 fi
 
+as_fn_append ac_header_list " errno.h"
 as_fn_append ac_header_list " fcntl.h"
+as_fn_append ac_header_list " linux/fs.h"
 as_fn_append ac_header_list " ncurses.h"
+as_fn_append ac_header_list " openssl/ssl.h"
 as_fn_append ac_header_list " stddef.h"
 as_fn_append ac_header_list " stdlib.h"
 as_fn_append ac_header_list " string.h"
 as_fn_append ac_header_list " sys/ioctl.h"
+as_fn_append ac_header_list " sys/syslog.h"
 as_fn_append ac_header_list " unistd.h"
 as_fn_append ac_func_list " getpagesize"
 as_fn_append ac_func_list " memmove"
@@ -2344,6 +2348,7 @@ as_fn_append ac_func_list " strerror"
 as_fn_append ac_func_list " strncasecmp"
 as_fn_append ac_func_list " strrchr"
 as_fn_append ac_func_list " strstr"
+as_fn_append ac_func_list " usleep"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -11182,6 +11187,54 @@ else
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL_library_init in -lssl" >&5
+$as_echo_n "checking for SSL_library_init in -lssl... " >&6; }
+if test "${ac_cv_lib_ssl_SSL_library_init+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lssl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char SSL_library_init ();
+int
+main ()
+{
+return SSL_library_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ssl_SSL_library_init=yes
+else
+  ac_cv_lib_ssl_SSL_library_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_SSL_library_init" >&5
+$as_echo "$ac_cv_lib_ssl_SSL_library_init" >&6; }
+if test "x$ac_cv_lib_ssl_SSL_library_init" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSSL 1
+_ACEOF
+
+  LIBS="-lssl $LIBS"
+
+else
+  as_fn_error $? "required library openssl missing" "$LINENO" 5
+fi
+
+
 # Checks for header files.
 
 
@@ -11199,6 +11252,14 @@ _ACEOF
 fi
 
 done
+
+
+
+
+
+
+
+
 
 
 
@@ -11766,6 +11827,8 @@ _ACEOF
 
 fi
 done
+
+
 
 
 
