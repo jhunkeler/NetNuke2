@@ -21,20 +21,9 @@ for any damages.  See the LICENSE document for more details.
         
         Seriously, you have been warned.
 
-BUGS
-----
-See commit logs in the git repository: http://github.com/jhunkeler/NetNuke
-
-
 OPERATING SYSTEMS SUPPORTED
 ---------------------------
 
 Linux:
         2.4 - Not Tested, and may not work
         2.6 - Works, but needs more testing
-
-
-OPTION REFERENCE
-----------------
-[TODO]
-
