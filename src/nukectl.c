@@ -59,6 +59,8 @@ void ignore_device(char** list, nndevice_t** d)
 
 void* wipe(void* device)
 {
+    extern WINDOW* main_window, *info_window;
+    extern pthread_mutex_t main_window_lock;
     nndevice_t* d = (nndevice_t*)device;
     unsigned long long times = 0;
     unsigned long long block = 0;
@@ -91,7 +93,9 @@ void* wipe(void* device)
             if(verbose_flag)
             {
                 percent = (long double)((bytes_out / (long double)d->sz) * 100);
-                printf("%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_out, d->sz, percent);
+                //COM(self, "%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_out, d->sz, percent);
+                mvwprintw(info_window, 0, 0, "%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_out, d->sz, percent);
+                wrefresh(info_window);
             }
             bytes_out += nnwrite(fd, d->blksz);
             block++;

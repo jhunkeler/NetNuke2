@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <pthread.h>
 #include "netnuke.h"
 
 extern int logging_flag;
@@ -40,9 +41,10 @@ int nnlogcleanup()
     return status;
 }
 
+extern WINDOW* main_window;
+extern pthread_mutex_t main_window_lock;
 int COM(const char* func, char *format, ...)
 {
-    extern WINDOW* main_window;
     struct tm *logtm;
     time_t logtime = time(NULL);
     char timestr[64];
