@@ -48,14 +48,14 @@ int scanbus_sysfs(nndevice_t** device)
     /* scan for scsi devices (and with libata enabled ... ide devices too) via sysfs */
     if((access(scsi_path, F_OK)) != 0)
     {
-        COM(self, "Sysfs not available\n");
+        COM(self, "Sysfs not available");
         return 1;
     }
 
     pbase = opendir(scsi_path);
     if(!pbase)
     {
-        COM(self, "fatal opendir: %s\n", strerror(errno));
+        COM(self, "fatal opendir: %s", strerror(errno));
         exit(1);
     }
 
@@ -76,7 +76,7 @@ int scanbus_sysfs(nndevice_t** device)
         fp = fopen(tmpstr, "r");
         if(fp == NULL)
         {
-            COM(self, "Could not retrieve model information from %s: %s\n", tmpstr, strerror(errno));
+            COM(self, "Could not retrieve model information from %s: %s", tmpstr, strerror(errno));
         }
         else
         {
@@ -91,7 +91,7 @@ int scanbus_sysfs(nndevice_t** device)
         fp = fopen(tmpstr, "r");
         if(fp == NULL)
         {
-            COM(self, "Could not retrieve vendor information from %s: %s\n", tmpstr, strerror(errno));
+            COM(self, "Could not retrieve vendor information from %s: %s", tmpstr, strerror(errno));
         }
         else
         {
@@ -107,7 +107,7 @@ int scanbus_sysfs(nndevice_t** device)
         pblock = opendir(tmpstr);
         if(!pblock)
         {
-            COM(self, "fatal opendir: %s\n", strerror(errno));
+            COM(self, "fatal opendir: %s", strerror(errno));
             exit(1);
         }
 
@@ -127,7 +127,7 @@ int scanbus_sysfs(nndevice_t** device)
         {
             if((ioctl(fd, BLKGETSIZE, &device[i]->blks)) != 0)
             {
-                COM(self, "ioctl: could not retrieve block count for %s\n", device[i]->path);
+                COM(self, "ioctl: could not retrieve block count for %s", device[i]->path);
                 device[i]->blks = 0;
             }
             close(fd);
@@ -136,7 +136,7 @@ int scanbus_sysfs(nndevice_t** device)
         device[i]->blksz = 512;
         device[i]->sz = device[i]->blks * 512;
 
-        COM(self, "%s %s %s %llu\n", device[i]->vendor, device[i]->path, device[i]->model, (device[i]->blks * device[i]->blksz));
+        COM(self, "%s %s %s %llu", device[i]->vendor, device[i]->path, device[i]->model, (device[i]->blks * device[i]->blksz));
         ++i;
     }
     closedir(pbase);
@@ -182,7 +182,7 @@ int scanbus(nndevice_t** device, int mask)
                             device[j]->blksz = 512;
 
                             printf("%s ", device[j]->path);
-                            printf("%llu %llu %.2f\n", device[j]->blks, device[j]->sz, (double)device[j]->sz / (1024 * 1024 * 1024));
+                            printf("%llu %llu %.2f", device[j]->blks, device[j]->sz, (double)device[j]->sz / (1024 * 1024 * 1024));
 
                         }
                         close(fd);
@@ -216,7 +216,7 @@ int scanbus(nndevice_t** device, int mask)
                             device[j]->blksz = 512;
 
                             printf("%s ", device[j]->path);
-                            printf("%llu %llu %.2f\n", device[j]->blks, device[j]->sz, (double)device[j]->sz / (1024 * 1024 * 1024));
+                            printf("%llu %llu %.2f", device[j]->blks, device[j]->sz, (double)device[j]->sz / (1024 * 1024 * 1024));
                         }
                         close(fd);
                     }
@@ -244,13 +244,13 @@ int selectbus(char** flags)
         if(!strcmp(flags[i], "ide"))
         {
             mask |= BUS_IDE;
-            COM(self, "IDE (0x%02X)\n", mask);
+            COM(self, "IDE (0x%02X)", mask);
         }
 
         if(!strcmp(flags[i], "scsi"))
         {
             mask |= BUS_SCSI;
-            COM(self, "SCSI (0x%02X)\n", mask);
+            COM(self, "SCSI (0x%02X)", mask);
         }
 
         i++;

@@ -73,11 +73,15 @@ int COM(const char* func, char *format, ...)
     {
         snprintf(timestr, sizeof(timestr), "%02d-%02d-%02d %02d:%02d:%02d", logtm->tm_year+1900, logtm->tm_mon+1, logtm->tm_mday, logtm->tm_hour, logtm->tm_min, logtm->tm_sec);
         snprintf(tmpstr, sizeof(tmpstr), "%s _%s_: %s", timestr, func, str);
-        fprintf(logfp, "%s", tmpstr);
+	/* With ncurses we will need to append a newline character because
+           calls to COM don't have them */
+        fprintf(logfp, "%s\n", tmpstr);
         fclose(logfp);
+	goto screen_out;
     }
     else
     {
+screen_out:
         snprintf(tmpstr, sizeof(tmpstr), "_%s_: %s", func, str);
         //fprintf(stdout, "%s", tmpstr);
         pthread_mutex_lock(&main_window_lock);
@@ -85,6 +89,9 @@ int COM(const char* func, char *format, ...)
         wprintw(main_window, "%s", tmpstr);
         wmove(main_window, printrow, 2);
         update_window(main_window);
+	if(printrow >= (getmaxy(main_window) / 2))
+	    wscrl(main_window, -1);
+
         printrow++;
         pthread_mutex_unlock(&main_window_lock);
     }

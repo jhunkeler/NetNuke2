@@ -71,6 +71,7 @@ extern nndevice_t** device;
 
 void* main_window_worker(void* args)
 {
+    COM(self, "Initialized");
     pthread_t thread[MAXTHREAD];
     int thread_count = 0;
     int i = 0;
@@ -123,18 +124,18 @@ void* main_window_worker(void* args)
     /* Run check to see if any devices were returned */
     if(device[0] == NULL)
     {
-        COM(self, "No devices detected\n");
+        COM(self, "No devices detected");
         exit(0);
     }
 
     COM(self, "Safety is %s", safety_flag ? "OFF" : "ON");
-    if(device_timeout) COM(self, "%ds timeout set\n", device_timeout);
-    if(blksz_override) COM(self, "Forcing %d block size\n", blksz_override);
+    if(device_timeout) COM(self, "%ds timeout set", device_timeout);
+    if(blksz_override) COM(self, "Forcing %d block size", blksz_override);
 
-    COM(self, "Initializing mutex\n");
+    COM(self, "Initializing mutex");
     pthread_mutex_init(&lock_global, NULL);
     pthread_mutex_init(&lock_write, NULL);
-    COM(self, "Generating threads\n");
+    COM(self, "Generating threads");
 
     /* Tell the random generator to start */
     nnrandinit();
@@ -143,24 +144,24 @@ void* main_window_worker(void* args)
     for( i = 0; device[i] != NULL ; i++ )
     {
         thread[i] = (pthread_t)nnthread(device[i]);
-        COM(self, "thread id: %8X %8X\n", thread[i]);
+        COM(self, "thread id: %8X", thread[i]);
     }
     /* Catch up */
     usleep(10000);
 
     /* Using the original device count, set thread_count and join all threads */
     thread_count = i;
-    COM(self, "Joining %d thread%c\n", thread_count, (thread_count > 1 || thread_count < 1) ? 's' : '\b');
+    COM(self, "Joining %d thread%c", thread_count, (thread_count > 1 || thread_count < 1) ? 's' : '\b');
 
     for( i = 0 ; i < thread_count ; i++)
     {
         pthread_join(thread[i], NULL);
     }
 
-    COM(self, "Destroying mutex\n");
+    COM(self, "Destroying mutex");
     pthread_mutex_destroy(&lock_global);
     pthread_mutex_destroy(&lock_write);
-    COM(self, "Total bytes written: %lu\n", total_written_bytes);
+    COM(self, "Total bytes written: %lu", total_written_bytes);
 
     nnrandfree();
     return NULL;
@@ -174,24 +175,24 @@ void main_init()
 	int startx = 0, starty = 0, width = 0, height = 0;
 
     cbreak();
-	keypad(stdscr, TRUE);
-
-	height = getmaxy(stdscr) / 2;
-	width = getmaxx(stdscr);
+    keypad(stdscr, TRUE);
+    height = getmaxy(stdscr) / 2;
+    width = getmaxx(stdscr);
 
     main_window = create_window(height, width, starty, startx);
     starty = getmaxy(stdscr) / 2;
     height = getmaxy(stdscr) / 2;
     width = getmaxx(stdscr);
     info_window = create_window(height, width, starty, startx);
-    //refresh();
 
     pthread_mutex_init(&main_window_lock, NULL);
     pthread_create(&main_window_thread, NULL, main_window_worker, NULL);
     pthread_join(main_window_thread, NULL);
     pthread_mutex_destroy(&main_window_lock);
+    getch();
 }
 
+/* This will probably never get used...  Or at least not soon enough. */
 void main_deinit()
 {
     endwin();

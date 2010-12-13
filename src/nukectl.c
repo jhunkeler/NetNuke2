@@ -50,7 +50,7 @@ void ignore_device(char** list, nndevice_t** d)
         {
             if(!strncasecmp(d[i]->path, list[j], strlen(list[j])))
             {
-                COM(self, "%s\n", list[j]);
+                COM(self, "%s", list[j]);
                 memset(d[i], 0, sizeof(nndevice_t));
                 //memmove(d[end-1], d[i], sizeof(nndevice_t));
             }
@@ -88,7 +88,7 @@ void* wipe(void* device)
     int fd = open(d->path, O_WRONLY | O_SYNC);
     if(fd < 0)
     {
-        COM(self, "Unable to open %s: %s\n", d->path, strerror(errno));
+        COM(self, "Unable to open %s: %s", d->path, strerror(errno));
         return (int*)1;
     }
     COM(self, "%s, block size %d, blocks %llu, total bytes %llu", d->path, d->blksz, d->blks, d->sz);
@@ -102,7 +102,7 @@ void* wipe(void* device)
             if(verbose_flag)
             {
                 percent = (long double)((bytes_out / (long double)d->sz) * 100);
-                //COM(self, "%s: %llu of %llu (%0.2Lf%%)\n", d->path, bytes_out, d->sz, percent);
+                //COM(self, "%s: %llu of %llu (%0.2Lf%%)", d->path, bytes_out, d->sz, percent);
                 pthread_mutex_lock(&lock_global);
                 mvwprintw(info_window, lrow, 2, "%s: %llu of %llu (%0.2Lf%%)\r", d->path, bytes_out, d->sz, percent);
                 update_window(info_window);
@@ -113,7 +113,7 @@ void* wipe(void* device)
         }
     }
     close(fd);
-    COM(self, "%s complete, wrote %llu bytes\n", d->path, bytes_out);
+    COM(self, "%s complete, wrote %llu bytes", d->path, bytes_out);
     pthread_exit(NULL);
 
     return NULL;
@@ -124,7 +124,7 @@ pthread_t nnthread(nndevice_t* device)
     pthread_t thread;
     if((pthread_create(&thread, NULL, wipe, device)) != 0)
     {
-        COM(self, "Failed to create thread %lu\n", thread);
+        COM(self, "Failed to create thread %lu", thread);
         return 1;
     }
 
@@ -158,11 +158,11 @@ int nnwrite(int fd, int bsize)
 
 void nnrandinit()
 {
-    COM(self, "Initializing random seed\n");
+    COM(self, "Initializing random seed");
     randfp = fopen("/dev/urandom", "r");
     if(randfp == NULL)
     {
-        COM(self, "urandom: %s\n", strerror(errno));
+        COM(self, "urandom: %s", strerror(errno));
         return;
     }
     srand(nngetseed());
@@ -170,7 +170,7 @@ void nnrandinit()
 
 void nnrandfree()
 {
-    COM(self, "Closing urandom\n");
+    COM(self, "Closing urandom");
     fclose(randfp);
 }
 
@@ -179,13 +179,13 @@ unsigned int nngetseed()
     if((fread(&randseed, 1, sizeof(int), randfp)) > 0)
     {
         if(verbose_flag)
-            COM(self, "(urandom) Seed is %lu\n", randseed);
+            COM(self, "(urandom) Seed is %lu", randseed);
         return randseed;
     }
 
     unsigned int t = time(NULL);
     if(verbose_flag)
-        COM(self, "(UNIX Epoch) Seed is %lu\n", t);
+        COM(self, "(UNIX Epoch) Seed is %lu", t);
     return t;
 }
 
