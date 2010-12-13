@@ -108,7 +108,7 @@ void* main_window_worker(void* args)
         }
         last = i - 1;
 
-        COM("IGNORING: %s", device[first]->path);
+        COM(self, "IGNORING: %s", device[first]->path);
         /* Replace the first device's array entry and then clear the original */
         memmove(device[first], device[last], sizeof(nndevice_t));
         memset(device[last], 0, sizeof(nndevice_t));
